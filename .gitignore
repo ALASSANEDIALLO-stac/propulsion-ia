@@ -1,0 +1,8 @@
+# On cache les secrets
+.env
+
+# On cache les dossiers inutiles et les bases de données locales
+__pycache__/
+data/*.json
+uploads/videos/
+uploads/thumbnails/

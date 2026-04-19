@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok Scheduler</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c26; --border:#2a2a3a;
+  --accent:#fe2c55; --accent2:#25f4ee; --text:#f0f0f8; --text2:#8888aa;
+  --text3:#555570; --green:#2dce89; --amber:#ffbe0b; --radius:14px; --radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.app{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+.main{flex:1;padding:32px;overflow-x:hidden;}
+.logo{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:16px;}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;letter-spacing:-0.5px;}
+.logo-text span{color:var(--accent);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'Space Grotesk',sans-serif;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(254,44,85,.12);color:var(--accent);}
+.nav-icon{font-size:16px;width:22px;text-align:center;}
+.sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:10px;}
+
+/* TikTok connect badge */
+.tiktok-connect{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.tiktok-connect-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.tiktok-user{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.tiktok-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;}
+.tiktok-avatar img{width:100%;height:100%;object-fit:cover;}
+.tiktok-username{font-size:13px;font-weight:600;color:var(--text);}
+.tiktok-status{font-size:11px;color:var(--green);}
+.btn-connect{width:100%;padding:9px;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s;}
+.btn-connect.connect{background:var(--accent);color:white;}
+.btn-connect.connect:hover{background:#e02248;}
+.btn-connect.disconnect{background:var(--surface);border:1px solid var(--border);color:var(--text2);}
+.btn-connect.disconnect:hover{color:var(--accent);border-color:var(--accent);}
+
+.stats-mini{background:var(--surface2);border-radius:var(--radius);padding:16px;border:1px solid var(--border);}
+.stats-mini-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.stat-row:last-child{margin-bottom:0;}
+.stat-label{font-size:13px;color:var(--text2);}
+.stat-val{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;}
+
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-title{font-size:26px;font-weight:700;letter-spacing:-.5px;}
+.page-title span{color:var(--accent);}
+.btn-add{background:var(--accent);color:white;border:none;padding:11px 20px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;font-family:'Space Grotesk',sans-serif;}
+.btn-add:hover{background:#e02248;transform:translateY(-1px);}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.stat-card-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.stat-card-val{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;}
+.stat-card-val.accent{color:var(--accent);}
+.stat-card-val.green{color:var(--green);}
+.stat-card-val.amber{color:var(--amber);}
+.stat-card-val.teal{color:var(--accent2);}
+
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'Space Grotesk',sans-serif;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(254,44,85,.08);}
+
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.post-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;}
+.post-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.post-thumb{width:100%;height:180px;background:var(--surface2);position:relative;overflow:hidden;}
+.post-thumb img{width:100%;height:100%;object-fit:cover;}
+.post-thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--text3);flex-direction:column;gap:8px;}
+.post-thumb-placeholder small{font-size:12px;color:var(--text3);}
+.post-status-badge{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.badge-scheduled{background:rgba(37,244,238,.15);color:var(--accent2);border:1px solid rgba(37,244,238,.3);}
+.badge-published{background:rgba(45,206,137,.15);color:var(--green);border:1px solid rgba(45,206,137,.3);}
+.badge-draft{background:rgba(136,136,170,.15);color:var(--text2);border:1px solid var(--border);}
+.post-video-badge{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.7);padding:3px 8px;border-radius:4px;font-size:11px;color:white;}
+.post-body{padding:16px;}
+.post-title{font-size:15px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.post-desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.post-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;min-height:24px;}
+.tag{background:rgba(254,44,85,.1);color:var(--accent);font-size:12px;padding:2px 8px;border-radius:4px;font-weight:500;}
+.post-date{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;margin-bottom:12px;font-family:'DM Mono',monospace;}
+.post-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-sm{padding:7px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Space Grotesk',sans-serif;transition:all .15s;}
+.btn-edit{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-edit:hover{color:var(--text);border-color:var(--text2);}
+.btn-tiktok{background:var(--accent);color:white;display:flex;align-items:center;gap:5px;}
+.btn-tiktok:hover{background:#e02248;}
+.btn-tiktok:disabled{opacity:.5;cursor:not-allowed;}
+.btn-published{background:rgba(45,206,137,.15);color:var(--green);border:1px solid rgba(45,206,137,.3);}
+.btn-delete{background:rgba(254,44,85,.1);color:var(--accent);border:1px solid rgba(254,44,85,.2);margin-left:auto;}
+.btn-delete:hover{background:rgba(254,44,85,.2);}
+
+.empty-state{text-align:center;padding:80px 40px;color:var(--text3);}
+.empty-icon{font-size:60px;margin-bottom:16px;}
+.empty-title{font-size:20px;font-weight:600;color:var(--text2);margin-bottom:8px;}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 0;}
+.modal-title{font-size:20px;font-weight:700;}
+.modal-close{background:var(--surface2);border:none;color:var(--text2);font-size:18px;width:36px;height:36px;border-radius:8px;cursor:pointer;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:24px;}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;}
+.form-input,.form-textarea,.form-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-size:14px;font-family:'Space Grotesk',sans-serif;transition:border-color .15s;outline:none;}
+.form-input:focus,.form-textarea:focus{border-color:var(--accent);}
+.form-textarea{min-height:90px;resize:vertical;line-height:1.5;}
+.form-hint{font-size:12px;color:var(--text3);margin-top:5px;}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(254,44,85,.04);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-icon{font-size:28px;margin-bottom:6px;}
+.upload-text{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:3px;}
+.upload-sub{font-size:11px;color:var(--text3);}
+.upload-preview{margin-top:8px;font-size:12px;color:var(--accent2);font-weight:500;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:0 24px 24px;}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:11px 20px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;}
+.btn-save{background:var(--accent);border:none;color:white;padding:11px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;}
+.btn-save:hover{background:#e02248;}
+.btn-save:disabled{opacity:.5;cursor:not-allowed;}
+.progress-bar{width:100%;height:4px;background:var(--surface2);border-radius:2px;margin-top:8px;display:none;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s;}
+
+/* Alert banner */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.alert-warn{background:rgba(255,190,11,.08);border:1px solid rgba(255,190,11,.3);color:var(--amber);}
+.alert-success{background:rgba(45,206,137,.08);border:1px solid rgba(45,206,137,.3);color:var(--green);}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 20px;font-size:14px;font-weight:500;z-index:200;transform:translateY(20px);opacity:0;transition:all .25s;max-width:340px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--accent);color:var(--accent);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{padding:20px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .upload-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">▶</div>
+      <div class="logo-text">Tik<span>Sched</span></div>
+    </div>
+    <button class="nav-item active" onclick="setFilter('all',this)"><span class="nav-icon">⊞</span> Tous les posts</button>
+    <button class="nav-item" onclick="setFilter('scheduled',this)"><span class="nav-icon">◷</span> Planifiés</button>
+    <button class="nav-item" onclick="setFilter('published',this)"><span class="nav-icon">✓</span> Publiés</button>
+    <button class="nav-item" onclick="setFilter('draft',this)"><span class="nav-icon">◻</span> Brouillons</button>
+
+    <div class="sidebar-bottom">
+      <div class="tiktok-connect">
+        <div class="tiktok-connect-title">Compte TikTok</div>
+        <div id="tiktok-user-info" style="display:none">
+          <div class="tiktok-user">
+            <div class="tiktok-avatar" id="tk-avatar">T</div>
+            <div>
+              <div class="tiktok-username" id="tk-username">—</div>
+              <div class="tiktok-status">● Connecté</div>
+            </div>
+          </div>
+        </div>
+        <div id="tiktok-disconnected" style="font-size:13px;color:var(--text3);margin-bottom:10px;">Non connecté</div>
+        <button class="btn-connect connect" id="btn-tk-connect" onclick="window.location='/tiktok/connect'">
+          Connecter TikTok
+        </button>
+        <button class="btn-connect disconnect" id="btn-tk-disconnect" style="display:none;margin-top:6px" onclick="window.location='/tiktok/disconnect'">
+          Déconnecter
+        </button>
+      </div>
+      <div class="stats-mini">
+        <div class="stats-mini-title">Résumé</div>
+        <div class="stat-row"><span class="stat-label">Total</span><span class="stat-val" id="s-total" style="color:var(--text)">0</span></div>
+        <div class="stat-row"><span class="stat-label">Planifiés</span><span class="stat-val" style="color:var(--accent2)" id="s-sched">0</span></div>
+        <div class="stat-row"><span class="stat-label">Publiés</span><span class="stat-val" style="color:var(--green)" id="s-pub">0</span></div>
+        <div class="stat-row"><span class="stat-label">Brouillons</span><span class="stat-val" style="color:var(--text2)" id="s-draft">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="alert-banner"></div>
+    <div class="page-header">
+      <div class="page-title">Mes vidéos <span>TikTok</span></div>
+      <button class="btn-add" onclick="openModal()">+ Ajouter une vidéo</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-card-label">Total</div><div class="stat-card-val accent" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-card-label">Planifiés</div><div class="stat-card-val teal" id="stat-sched">0</div></div>
+      <div class="stat-card"><div class="stat-card-label">Publiés</div><div class="stat-card-val green" id="stat-pub">0</div></div>
+      <div class="stat-card"><div class="stat-card-label">Brouillons</div><div class="stat-card-val amber" id="stat-draft">0</div></div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterClick('all',this)">Tous</button>
+      <button class="filter-btn" onclick="filterClick('scheduled',this)">Planifiés</button>
+      <button class="filter-btn" onclick="filterClick('published',this)">Publiés</button>
+      <button class="filter-btn" onclick="filterClick('draft',this)">Brouillons</button>
+    </div>
+    <div class="posts-grid" id="posts-grid"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Nouvelle vidéo</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Titre</label>
+        <input type="text" class="form-input" id="f-title" placeholder="Titre de ta vidéo...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Légende</label>
+        <textarea class="form-textarea" id="f-desc" placeholder="Décris ta vidéo..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hashtags</label>
+        <input type="text" class="form-input" id="f-tags" placeholder="#fyp #viral #pourtoi">
+        <div class="form-hint">Sépare par des espaces. Ex: #fyp #viral #trending</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date et heure de publication</label>
+        <input type="datetime-local" class="form-input" id="f-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select class="form-input form-select" id="f-status">
+          <option value="scheduled">Planifié</option>
+          <option value="draft">Brouillon</option>
+          <option value="published">Déjà publié</option>
+        </select>
+      </div>
+      <div class="upload-grid">
+        <div class="form-group">
+          <label class="form-label">Vidéo</label>
+          <div class="upload-zone">
+            <input type="file" id="f-video" accept="video/*" onchange="previewFile('f-video','video-preview')">
+            <div class="upload-icon">🎬</div>
+            <div class="upload-text">Ajouter la vidéo</div>
+            <div class="upload-sub">MP4, MOV — max 500MB</div>
+            <div class="upload-preview" id="video-preview"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vignette</label>
+          <div class="upload-zone">
+            <input type="file" id="f-thumb" accept="image/*" onchange="previewFile('f-thumb','thumb-preview')">
+            <div class="upload-icon">🖼</div>
+            <div class="upload-text">Ajouter la vignette</div>
+            <div class="upload-sub">JPG, PNG, WEBP</div>
+            <div class="upload-preview" id="thumb-preview"></div>
+          </div>
+        </div>
+      </div>
+      <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" id="btn-save" onclick="savePost()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let allPosts = [];
+let currentFilter = 'all';
+let editingId = null;
+let tiktokConnected = false;
+
+// Vérifier params URL
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('connected') === '1') showToast('TikTok connecté avec succès !', 'success');
+if (urlParams.get('error')) showToast('Erreur connexion TikTok: ' + urlParams.get('error'), 'error');
+window.history.replaceState({}, '', '/');
+
+async function init() {
+  await checkTikTokStatus();
+  await loadPosts();
+  await loadStats();
+}
+
+async function checkTikTokStatus() {
+  const r = await fetch('/api/tiktok/status');
+  const d = await r.json();
+  tiktokConnected = d.connected;
+  if (d.connected) {
+    document.getElementById('tiktok-user-info').style.display = 'block';
+    document.getElementById('tiktok-disconnected').style.display = 'none';
+    document.getElementById('tk-username').textContent = d.username || 'Mon TikTok';
+    if (d.avatar) {
+      document.getElementById('tk-avatar').innerHTML = `<img src="${d.avatar}" alt="avatar">`;
+    }
+    document.getElementById('btn-tk-connect').style.display = 'none';
+    document.getElementById('btn-tk-disconnect').style.display = 'block';
+    document.getElementById('alert-banner').innerHTML = '';
+  } else {
+    document.getElementById('alert-banner').innerHTML = `
+      <div class="alert alert-warn">
+        ⚠️ Connecte ton compte TikTok dans la sidebar pour pouvoir publier directement depuis l'app.
+      </div>`;
+  }
+}
+
+async function loadPosts() {
+  const r = await fetch('/api/posts');
+  allPosts = await r.json();
+  renderPosts();
+}
+
+async function loadStats() {
+  const r = await fetch('/api/stats');
+  const s = await r.json();
+  ['total','sched','pub','draft'].forEach(k => {
+    const key = k === 'total' ? 'total' : k === 'sched' ? 'scheduled' : k === 'pub' ? 'published' : 'draft';
+    const val = s[key] || 0;
+    document.getElementById('stat-' + k).textContent = val;
+    document.getElementById('s-' + k).textContent = val;
+  });
+}
+
+function renderPosts() {
+  const grid = document.getElementById('posts-grid');
+  let posts = currentFilter === 'all' ? allPosts : allPosts.filter(p => p.status === currentFilter);
+  if (!posts.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🎬</div>
+      <div class="empty-title">Aucune vidéo ici</div>
+      <div style="font-size:14px;color:var(--text3)">Clique sur "Ajouter une vidéo" pour commencer</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = posts.map(post => {
+    const tags = (post.hashtags || '').split(' ').filter(Boolean).map(t => `<span class="tag">${t}</span>`).join('');
+    const dateStr = post.scheduled_at ? formatDate(post.scheduled_at) : '—';
+    const thumb = post.thumbnail_path
+      ? `<img src="/${post.thumbnail_path}?t=${Date.now()}" alt="thumb" onerror="this.parentElement.innerHTML='<div class=post-thumb-placeholder>🎬</div>'">`
+      : `<div class="post-thumb-placeholder">🎬<small>Pas de vignette</small></div>`;
+    const badgeCls = post.status === 'published' ? 'badge-published' : post.status === 'scheduled' ? 'badge-scheduled' : 'badge-draft';
+    const badgeLbl = post.status === 'published' ? '✓ Publié' : post.status === 'scheduled' ? '◷ Planifié' : '◻ Brouillon';
+
+    let publishBtn = '';
+    if (post.status !== 'published') {
+      if (tiktokConnected && post.video_path) {
+        publishBtn = `<button class="btn-sm btn-tiktok" onclick="publishToTikTok('${post.id}',this)">▶ Publier sur TikTok</button>`;
+      } else if (!tiktokConnected) {
+        publishBtn = `<button class="btn-sm btn-edit" style="opacity:.5;cursor:not-allowed" title="Connecte TikTok d'abord">▶ Publier</button>`;
+      }
+    } else {
+      publishBtn = `<span class="btn-sm btn-published">✓ Publié sur TikTok</span>`;
+    }
+
+    return `<div class="post-card" id="card-${post.id}">
+      <div class="post-thumb">${thumb}
+        <div class="post-status-badge ${badgeCls}">${badgeLbl}</div>
+        ${post.video_name ? `<div class="post-video-badge">▶ ${post.video_name.substring(0,18)}</div>` : ''}
+      </div>
+      <div class="post-body">
+        <div class="post-title">${post.title || 'Sans titre'}</div>
+        <div class="post-desc">${post.description || 'Pas de description'}</div>
+        <div class="post-tags">${tags}</div>
+        <div class="post-date">📅 ${dateStr}</div>
+        <div class="post-actions">
+          <button class="btn-sm btn-edit" onclick="editPost('${post.id}')">✏ Modifier</button>
+          ${publishBtn}
+          <button class="btn-sm btn-delete" onclick="deletePost('${post.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function publishToTikTok(id, btn) {
+  if (!confirm('Publier cette vidéo sur TikTok maintenant ?')) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Publication...';
+  try {
+    const r = await fetch(`/api/posts/${id}/publish`, { method: 'POST' });
+    const d = await r.json();
+    if (d.success) {
+      showToast('Vidéo publiée sur TikTok !', 'success');
+      await loadPosts();
+      await loadStats();
+    } else {
+      showToast('Erreur: ' + d.error, 'error');
+      btn.disabled = false;
+      btn.textContent = '▶ Publier sur TikTok';
+    }
+  } catch (e) {
+    showToast('Erreur réseau', 'error');
+    btn.disabled = false;
+    btn.textContent = '▶ Publier sur TikTok';
+  }
+}
+
+function formatDate(iso) {
+  try { return new Date(iso).toLocaleString('fr-FR', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch { return iso; }
+}
+
+function filterClick(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPosts();
+}
+
+function setFilter(filter, btn) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = filter;
+  renderPosts();
+}
+
+function openModal(post = null) {
+  editingId = post ? post.id : null;
+  document.getElementById('modal-title').textContent = post ? 'Modifier la vidéo' : 'Nouvelle vidéo';
+  document.getElementById('f-title').value = post?.title || '';
+  document.getElementById('f-desc').value = post?.description || '';
+  document.getElementById('f-tags').value = post?.hashtags || '';
+  document.getElementById('f-status').value = post?.status || 'scheduled';
+  document.getElementById('f-video').value = '';
+  document.getElementById('f-thumb').value = '';
+  document.getElementById('video-preview').textContent = post?.video_name ? '✓ ' + post.video_name : '';
+  document.getElementById('thumb-preview').textContent = post?.thumbnail_name ? '✓ ' + post.thumbnail_name : '';
+  const now = new Date(); now.setHours(now.getHours() + 1);
+  document.getElementById('f-date').value = post?.scheduled_at ? post.scheduled_at.substring(0,16) : now.toISOString().substring(0,16);
+  document.getElementById('progress-bar').style.display = 'none';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+}
+
+function editPost(id) {
+  openModal(allPosts.find(p => p.id === id));
+}
+
+function previewFile(inputId, previewId) {
+  const file = document.getElementById(inputId).files[0];
+  if (file) document.getElementById(previewId).textContent = '✓ ' + file.name;
+}
+
+async function savePost() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+  const fd = new FormData();
+  fd.append('title', document.getElementById('f-title').value);
+  fd.append('description', document.getElementById('f-desc').value);
+  fd.append('hashtags', document.getElementById('f-tags').value);
+  fd.append('scheduled_at', document.getElementById('f-date').value);
+  fd.append('status', document.getElementById('f-status').value);
+  const v = document.getElementById('f-video').files[0];
+  const t = document.getElementById('f-thumb').files[0];
+  if (v) fd.append('video', v);
+  if (t) fd.append('thumbnail', t);
+  document.getElementById('progress-bar').style.display = 'block';
+  const fill = document.getElementById('progress-fill');
+  try {
+    await new Promise((res, rej) => {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = e => { if (e.lengthComputable) fill.style.width = (e.loaded/e.total*100) + '%'; };
+      xhr.onload = () => xhr.status < 300 ? res() : rej();
+      xhr.onerror = rej;
+      xhr.open(editingId ? 'PUT' : 'POST', editingId ? `/api/posts/${editingId}` : '/api/posts');
+      xhr.send(fd);
+    });
+    closeModal();
+    showToast('Vidéo enregistrée !', 'success');
+    await loadPosts(); await loadStats();
+  } catch {
+    showToast('Erreur lors de l\'enregistrement', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enregistrer';
+    fill.style.width = '0%';
+  }
+}
+
+async function deletePost(id) {
+  if (!confirm('Supprimer cette vidéo ?')) return;
+  await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+  showToast('Vidéo supprimée', 'success');
+  await loadPosts(); await loadStats();
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+init();
+setInterval(() => { loadPosts(); loadStats(); }, 30000);
+</script>
+</body>
+</html>
